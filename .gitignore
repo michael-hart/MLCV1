@@ -1,0 +1,35 @@
+##---------------------------------------------------
+## Shamelessly stolen from:
+## https://github.com/github/gitignore/blob/master/Global/Matlab.gitignore
+##---------------------------------------------------
+
+# Windows default autosave extension
+*.asv
+
+# OSX / *nix default autosave extension
+*.m~
+
+# Compiled MEX binaries (all platforms)
+*.mex*
+
+# Simulink Code Generation
+slprj/
+
+# Session info
+octave-workspace
+
+# Folder contain relevant files for each person, but not the repo. 
+misc
+
+# Large files, with the exception of the data given.
+*.mat
+!res/face.mat
+
+# Pictures are generatable on each local machine. As and when needed. 
+*.png
+
+# TeX output related files, with the exception of the actual .tex file. Also a typesetting script for Meng, who (in the third person) used it.
+main.*
+!main.tex
+typeset.sh
+
