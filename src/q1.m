@@ -33,8 +33,9 @@ prior = histc(data_train(idx,end),labels)/length(idx);
 % Set the random forest parameters
 param.num = 1;         % Number of trees
 param.depth = 1;        % trees depth
-param.splitNum = 1;     % Number of split functions to try
+param.splitNum = 20;     % Number of split functions to try
 param.split = 'IG';     % Currently support 'information gain' only
+param.splitfunc = 'two-pixel';
 
 % tree = growTrees(bag_data, param)
 
