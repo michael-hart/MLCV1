@@ -35,7 +35,7 @@ param.num = 1;         % Number of trees
 param.depth = 1;        % trees depth
 param.splitNum = 20;     % Number of split functions to try
 param.split = 'IG';     % Currently support 'information gain' only
-param.splitfunc = 'two-pixel';
+param.splitfunc = 'linear';
 
 % tree = growTrees(bag_data, param)
 

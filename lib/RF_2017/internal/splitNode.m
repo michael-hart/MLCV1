@@ -26,6 +26,7 @@ ig_best = -inf; % Initialise best information gain
 idx_best = [];
 for n = 1:iter
     dim = 3;
+    t = 1;
     if strcmp(param.splitfunc, 'axis-aligned')
     
         % Split function - Modify here and try other types of split function
@@ -94,7 +95,23 @@ for n = 1:iter
         
         ig = getIG(data,idx_);
         
-%     elseif strcmp(param.splitfunc, 'linear')
+    elseif strcmp(param.splitfunc, 'linear')
+        
+        % Create a random gradient
+        m = (5 - -5)*rand + -5;
+        % Create y-intercept from randomly selected point
+        any_point = data(randi(N), :);
+        c = any_point(2) - m*any_point(1);
+        
+        idx_ = false(N, 1);
+        for i=1:N
+            t1 = data(i, 1:2);
+            if t1(2) > (m*t1(1) + c)
+                idx_(i) = true;
+            end
+        end
+        
+        ig = getIG(data,idx_);
         
 %     elseif strcmp(param.splitfunc, 'quadratic')
         
