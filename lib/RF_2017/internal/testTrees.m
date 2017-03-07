@@ -3,17 +3,17 @@ function label = testTrees(data,tree)
 
 cc = [];
 for T = 1:length(tree)
-    for m = 1:size(data,1);
+    for m = 1:size(data,1)
         idx = 1;
         
-        while tree(T).node(idx).dim
-            t = tree(T).node(idx).t;
-            dim = tree(T).node(idx).dim;
-            % Decision
-            if data(m,dim) < t % Pass data to left node
-                idx = idx*2;
+        while ~strcmp(tree(T).node(idx).split_param.split_func, 'leaf')
+            
+            if split_decision(data, data(m,:), tree(T).node(idx).split_param)
+                % Pass data right
+                idx = idx*2+1;
             else
-                idx = idx*2+1; % and to right
+                % Pass data left
+                idx = idx*2;
             end
             
         end

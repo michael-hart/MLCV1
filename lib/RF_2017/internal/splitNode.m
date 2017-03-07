@@ -5,18 +5,17 @@ visualise = 1;
 
 % Initilise child nodes
 iter = param.splitNum;
-nodeL = struct('idx',[],'t',nan,'dim',0,'prob',[]);
-nodeR = struct('idx',[],'t',nan,'dim',0,'prob',[]);
+nodeL = struct('idx',[],'prob',[],'split_param',struct());
+nodeR = struct('idx',[],'prob',[],'split_param',struct());
 
 if length(node.idx) <= 5 % make this node a leaf if has less than 5 data points
-    node.t = nan;
-    node.dim = 0;
+    node.split_param.split_func = 'leaf';
     return;
 end
 
 % Make sure that the parameters include a split function
-if (not(isfield(param, 'splitfunc')))
-    param.splitfunc = 'axis-aligned';
+if (not(isfield(param, 'split_func')))
+    param.split_func = 'axis-aligned';
 end
 
 idx = node.idx;
@@ -25,9 +24,7 @@ data = data(idx,:);
 ig_best = -inf; % Initialise best information gain
 idx_best = [];
 for n = 1:iter
-    dim = 3;
-    t = 1;
-    if strcmp(param.splitfunc, 'axis-aligned')
+    if strcmp(param.split_func, 'axis-aligned')
     
         % Split function - Modify here and try other types of split function
 
@@ -36,47 +33,36 @@ for n = 1:iter
         d_max = single(max(data(:,dim))) - eps;
         t = d_min + rand*((d_max-d_min)); % Pick a random value within the range as threshold
         idx_ = data(:,dim) < t;
+        
+        split_param = struct('split_func', 'axis-aligned', 't', t, 'dim', dim);
 
         ig = getIG(data,idx_); % Calculate information gain
-
-        if visualise
-            visualise_splitfunc(idx_,data,dim,t,ig,n);
-            pause();
-        end
     
-    elseif strcmp(param.splitfunc, 'x-aligned')
+    elseif strcmp(param.split_func, 'x-aligned')
         
-        dim = 1;
         % Same as axis-aligned, but no random axis selection
         d_min = single(min(data(:,1))) + eps;
-        d_max = single(max(data(:,dim))) - eps;
+        d_max = single(max(data(:,1))) - eps;
         t = d_min + rand*((d_max-d_min));
         idx_ = data(:,1) < t;
         
+        split_param = struct('split_func', 'axis-aligned', 't', t, 'dim', 1);
+        
         ig = getIG(data,idx_);
         
-        if visualise
-            visualise_splitfunc(idx_,data,1,t,ig,n);
-            pause();
-        end
+    elseif strcmp(param.split_func, 'y-aligned')
         
-    elseif strcmp(param.splitfunc, 'y-aligned')
-        
-        dim = 2;
         % Same as axis-aligned, but no random axis selection
         d_min = single(min(data(:,2))) + eps;
-        d_max = single(max(data(:,dim))) - eps;
+        d_max = single(max(data(:,2))) - eps;
         t = d_min + rand*((d_max-d_min));
         idx_ = data(:,2) < t;
         
+        split_param = struct('split_func', 'axis-aligned', 't', t, 'dim', 2);
+        
         ig = getIG(data,idx_);
         
-        if visualise
-            visualise_splitfunc(idx_,data,2,t,ig,n);
-            pause();
-        end
-        
-    elseif strcmp(param.splitfunc, 'two-pixel')
+    elseif strcmp(param.split_func, 'two-pixel')
         
         % Check gradient between each sequential pixel pair against pixel
         t = (5 - -5)*rand + -5;
@@ -93,9 +79,11 @@ for n = 1:iter
             end
         end
         
+        split_param = struct('split_func', 'two-pixel', 't', t);
+        
         ig = getIG(data,idx_);
         
-    elseif strcmp(param.splitfunc, 'linear')
+    elseif strcmp(param.split_func, 'linear')
         
         % Create a random gradient
         m = (5 - -5)*rand + -5;
@@ -111,13 +99,34 @@ for n = 1:iter
             end
         end
         
+        split_param = struct('split_func', 'linear', 'm', m, 'c', c);
+        
         ig = getIG(data,idx_);
         
-%     elseif strcmp(param.splitfunc, 'quadratic')
+    elseif strcmp(param.split_func, 'quadratic')
+        
+        % Create a random pair a, b (y = ax^2 + bx + c)
+        a = (5 - -5)*rand + -5;
+        b = (5 - -5)*rand + -5;
+        % Randomly select point and match c to it
+        any_point = data(randi(N), :);
+        c = any_point(2) - a*any_point(1)^2 - b*any_point(1);
+        
+        idx_ = false(N, 1);
+        for i=1:N
+            t1 = data(i, 1:2);
+            if t1(2) > (a*t1(1)^2 + b*t1(1) + c)
+                idx_(i) = true;
+            end
+        end
+        
+        split_param = struct('split_func', 'quadratic', 'a', a, 'b', b, 'c', c);
+        
+        ig = getIG(data,idx_);
         
     end
     
-    [node, ig_best, idx_best] = updateIG(node,ig_best,ig,t,idx_,dim,idx_best);
+    [node, ig_best, idx_best] = updateIG(node,ig_best,ig,idx_,idx_best,split_param);
     
 end
 
@@ -125,9 +134,21 @@ nodeL.idx = idx(idx_best);
 nodeR.idx = idx(~idx_best);
 
 if visualise
-    visualise_splitfunc(idx_best,data,dim,t,ig_best,0)
+    visualise_splitfunc(idx_best,data,ig_best,split_param,0)
     fprintf('Information gain = %f. \n',ig_best);
-    pause();
+    
+    if strcmp(split_param.split_func, 'axis-aligned')
+        fprintf('Axis-aligned with t= %f and dim %d. \n', ...
+                split_param.t, split_param.dim);
+    elseif strcmp(split_param.split_func, 'two-pixel')
+        fprintf('Two-pixel with t= %f . \n', split_param.t);
+    elseif strcmp(split_param.split_func, 'linear')
+        fprintf('Linear with m= %f and c= %f. \n', split_param.m, ...
+                split_param.c);
+    elseif strcmp(split_param.split_func, 'quadratic')
+        fprintf('Quadratic with a= %f, b= %f, c =%f. \n', ...
+                split_param.a, split_param.b, split_param.c);
+    end
 end
 
 end
@@ -148,11 +169,10 @@ cdist= cdist .* log(cdist);
 H = -sum(cdist);
 end
 
-function [node, ig_best, idx_best] = updateIG(node,ig_best,ig,t,idx,dim,idx_best) % Update information gain
+function [node, ig_best, idx_best] = updateIG(node,ig_best,ig,idx,idx_best,split_param) % Update information gain
 if ig > ig_best
     ig_best = ig;
-    node.t = t;
-    node.dim = dim;
+    node.split_param = split_param;
     idx_best = idx;
 else
     idx_best = idx_best;
