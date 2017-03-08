@@ -89,7 +89,7 @@ for n = 1:iter
         m = (5 - -5)*rand + -5;
         % Create y-intercept from randomly selected point
         any_point = data(randi(N), :);
-        c = any_point(2) - m*any_point(1);
+        c = any_point(2) - m*any_point(1) + eps;
         
         idx_ = false(N, 1);
         for i=1:N
@@ -110,7 +110,7 @@ for n = 1:iter
         b = (5 - -5)*rand + -5;
         % Randomly select point and match c to it
         any_point = data(randi(N), :);
-        c = any_point(2) - a*any_point(1)^2 - b*any_point(1);
+        c = any_point(2) - a*any_point(1)^2 - b*any_point(1) + eps;
         
         idx_ = false(N, 1);
         for i=1:N
@@ -132,6 +132,8 @@ end
 
 nodeL.idx = idx(idx_best);
 nodeR.idx = idx(~idx_best);
+% Re-assign to split_param the best version
+split_param = node.split_param;
 
 if visualise
     visualise_splitfunc(idx_best,data,ig_best,split_param,0)
@@ -172,7 +174,10 @@ end
 function [node, ig_best, idx_best] = updateIG(node,ig_best,ig,idx,idx_best,split_param) % Update information gain
 if ig > ig_best
     ig_best = ig;
-    node.split_param = split_param;
+    % Copy out the parameters, don't just do an assignment
+    for fn = fieldnames(split_param)'
+        node.split_param.(fn{1}) = split_param.(fn{1});
+    end
     idx_best = idx;
 else
     idx_best = idx_best;
