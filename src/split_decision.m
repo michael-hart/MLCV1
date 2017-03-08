@@ -8,11 +8,11 @@ function decision = split_decision( data, point, split_param )
     p = point(1:2);
     
     % split_param is a parameter structure containing parameters
-    if strcmp(split_param.func_type, 'axis-aligned')
+    if strcmp(split_param.split_func, 'axis-aligned')
         dim = split_param.dim;
         t = split_param.t;
         decision = p(dim) > t;
-    elseif strcmp(split_param.func_type, 'two-pixel')
+    elseif strcmp(split_param.split_func, 'two-pixel')
         % Get the next point after thing
         % Data to search is data(:, 1:2)
         idx = 0;
@@ -34,11 +34,11 @@ function decision = split_decision( data, point, split_param )
         t = split_param.t;
         decision = ((next_p(2)-p(2)) / (next_p(1) - p(1)) > t);
 
-    elseif strcmp(split_param.func_type, 'linear')
+    elseif strcmp(split_param.split_func, 'linear')
         m = split_param.m;
         c = split_param.c;
         decision = p(2) > m*p(1) + c;
-    elseif strcmp(split_param.func_type, 'quadratic')
+    elseif strcmp(split_param.split_func, 'quadratic')
         a = split_param.a;
         b = split_param.b;
         c = split_param.c;

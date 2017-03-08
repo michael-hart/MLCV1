@@ -1,4 +1,4 @@
-function tree = growtrees(data,param)
+function tree = growTrees(data,param)
 
 %        Base               Each node stores:
 %         1                   trees.idx       - data (index only) which split into this node
@@ -21,7 +21,7 @@ for T = 1:param.num
     prior = histc(data(idx,end),labels)/length(idx);
     
     % Initialise base node
-    tree(T).node(1) = struct('idx',idx,'t',nan,'dim',-1,'prob',[]);
+    tree(T).node(1) = struct('idx',idx,'prob',[],'split_param',struct('split_func', 'leaf'));
     
     % Split Nodes
     for n = 1:2^(param.depth-1)-1
@@ -35,7 +35,8 @@ for T = 1:param.num
             % Percentage of observations of each class label
             tree(T).node(n).prob = histc(data(tree(T).node(n).idx,end),labels)/length(tree(T).node(n).idx);
             
-            if ~tree(T).node(n).dim % if this is a leaf node
+            % if this is a leaf node
+            if strcmp(tree(T).node(n).split_param.split_func, 'leaf')
                 tree(T).node(n).leaf_idx = cnt;
                 tree(T).leaf(cnt).label = cnt_total;
                 prob = reshape(histc(data(tree(T).node(n).idx,end),labels),[],1);

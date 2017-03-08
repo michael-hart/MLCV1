@@ -5,8 +5,8 @@ visualise = 1;
 
 % Initilise child nodes
 iter = param.splitNum;
-nodeL = struct('idx',[],'prob',[],'split_param',struct());
-nodeR = struct('idx',[],'prob',[],'split_param',struct());
+nodeL = struct('idx',[],'prob',[],'split_param',struct('split_func', 'leaf'));
+nodeR = struct('idx',[],'prob',[],'split_param',struct('split_func', 'leaf'));
 
 if length(node.idx) <= 5 % make this node a leaf if has less than 5 data points
     node.split_param.split_func = 'leaf';
