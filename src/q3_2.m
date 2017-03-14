@@ -11,3 +11,46 @@ addpath('../rf2017/external/libsvm-3.18/matlab');
 load('q3.mat');
 load('testing_hist.mat');
 load('training_hist.mat');
+
+%% Training data
+k = 256;
+classes = 10;
+perclass = 15;
+data_trees_train = zeros(classes * perclass, k + 1);
+data_idx = 1;
+for class_idx = 1:classes
+    for image_idx = 1:perclass
+        histogram_output = histogram_output_train256(class_idx, image_idx, :);
+        data_trees_train(data_idx, 1:k) = permute( histogram_output, [1 3 2]);
+        data_trees_train(data_idx, k+1) = class_idx;
+        data_idx = data_idx + 1;
+    end
+end
+
+%% Test data
+k = 256;
+classes = 10;
+perclass = 15;
+data_trees_test = zeros(classes * perclass, k);
+data_idx = 1;
+for class_idx = 1:classes
+    for image_idx = 1:perclass
+        histogram_output = histogram_testing256(class_idx, image_idx, :);
+        data_trees_test(data_idx, :) = permute( histogram_output, [1 3 2]);
+        data_idx = data_idx + 1;
+    end
+end
+
+%% Split the first node and investigate
+
+% Set the random forest parameters
+param.num = 3;         % Number of trees
+param.depth = 13;        % trees depth
+param.splitNum = 50;     % Number of split functions to try
+param.split = 'IG';     % Currently support 'information gain' only
+param.split_func = 'axis-aligned';
+
+trees = growTrees(data_trees_train, param);
+
+%%
+answers = testTrees_fast(data_trees_test, trees);
