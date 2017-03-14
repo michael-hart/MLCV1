@@ -1,7 +1,7 @@
 function [node,nodeL,nodeR] = splitNode(data,node,param)
 % Split node
 
-visualise = 1;
+visualise = 0;
 
 % Initilise child nodes
 iter = param.splitNum;
@@ -136,39 +136,25 @@ nodeR.idx = idx(~idx_best);
 split_param = node.split_param;
 
 if visualise
-    visualise_splitfunc(idx_best,data,ig_best,split_param,0)
-    fprintf('Information gain = %f. \n',ig_best);
+    idx_best = data(:,split_param.dim) < split_param.t;
     
-    if strcmp(split_param.split_func, 'axis-aligned')
-        fprintf('Axis-aligned with t= %f and dim %d. \n', ...
-                split_param.t, split_param.dim);
-    elseif strcmp(split_param.split_func, 'two-pixel')
-        fprintf('Two-pixel with t= %f . \n', split_param.t);
-    elseif strcmp(split_param.split_func, 'linear')
-        fprintf('Linear with m= %f and c= %f. \n', split_param.m, ...
-                split_param.c);
-    elseif strcmp(split_param.split_func, 'quadratic')
-        fprintf('Quadratic with a= %f, b= %f, c =%f. \n', ...
-                split_param.a, split_param.b, split_param.c);
-    end
+    visualise_splitfunc(idx_best,data,ig_best,split_param,0)
+%     fprintf('Information gain = %f. \n',ig_best);
+    
+%     if strcmp(split_param.split_func, 'axis-aligned')
+%         fprintf('Axis-aligned with t= %f and dim %d. \n', ...
+%                 split_param.t, split_param.dim);
+%     elseif strcmp(split_param.split_func, 'two-pixel')
+%         fprintf('Two-pixel with t= %f . \n', split_param.t);
+%     elseif strcmp(split_param.split_func, 'linear')
+%         fprintf('Linear with m= %f and c= %f. \n', split_param.m, ...
+%                 split_param.c);
+%     elseif strcmp(split_param.split_func, 'quadratic')
+%         fprintf('Quadratic with a= %f, b= %f, c =%f. \n', ...
+%                 split_param.a, split_param.b, split_param.c);
+%     end
 end
 
-end
-
-function ig = getIG(data,idx) % Information Gain - the 'purity' of data labels in both child nodes after split. The higher the purer.
-L = data(idx);
-R = data(~idx);
-H = getE(data);
-HL = getE(L);
-HR = getE(R);
-ig = H - sum(idx)/length(idx)*HL - sum(~idx)/length(idx)*HR;
-end
-
-function H = getE(X) % Entropy
-cdist= histc(X(:,1:end), unique(X(:,end))) + 1;
-cdist= cdist/sum(cdist);
-cdist= cdist .* log(cdist);
-H = -sum(cdist);
 end
 
 function [node, ig_best, idx_best] = updateIG(node,ig_best,ig,idx,idx_best,split_param) % Update information gain
