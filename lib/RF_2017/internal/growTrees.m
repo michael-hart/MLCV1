@@ -10,7 +10,13 @@ function tree = growTrees(data,param)
 disp('Training Random Forest...');
 
 [N,D] = size(data);
-frac = 1 - 1/exp(1); % Bootstrap sampling fraction: 1 - 1/e (63.2%)
+if (not(isfield(param, 'frac')))
+    frac = 1 - 1/exp(1); % Bootstrap sampling fraction: 1 - 1/e (63.2%)
+else
+    frac = param.frac;
+end
+
+% frac = 1 - 1/exp(1); % Bootstrap sampling fraction: 1 - 1/e (63.2%)
 
 cnt_total = 1;
 [labels,~] = unique(data(:,end));
