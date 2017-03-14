@@ -3,16 +3,19 @@ clear;
 close all;
 
 % addpaths
+% Mike, remove whatever you don't need. This script only needs the trees
+% functions.
 addpath('../rf2017/internal');
 addpath('../rf2017/external');
 addpath('../rf2017/external/libsvm-3.18/matlab');
+
 
 % Load data
 load('q3.mat');
 load('testing_hist.mat');
 load('training_hist.mat');
 
-%% Training data
+%% Training data, takes data, makes it usable.
 k = 256;
 classes = 10;
 perclass = 15;
@@ -31,19 +34,20 @@ end
 k = 256;
 classes = 10;
 perclass = 15;
-data_trees_test = zeros(classes * perclass, k);
+data_trees_test = zeros(classes * perclass, k+1);
 data_idx = 1;
 for class_idx = 1:classes
     for image_idx = 1:perclass
         histogram_output = histogram_testing256(class_idx, image_idx, :);
-        data_trees_test(data_idx, :) = permute( histogram_output, [1 3 2]);
+        data_trees_test(data_idx, 1:k) = permute( histogram_output, [1 3 2]);
         data_idx = data_idx + 1;
     end
 end
 
-%% Split the first node and investigate
+%% Grow Trees
 
 % Set the random forest parameters
+
 param.num = 3;         % Number of trees
 param.depth = 13;        % trees depth
 param.splitNum = 50;     % Number of split functions to try
@@ -52,5 +56,14 @@ param.split_func = 'axis-aligned';
 
 trees = growTrees(data_trees_train, param);
 
-%%
-answers = testTrees_fast(data_trees_test, trees);
+%% Testing
+for n=1:size(data_trees_test,1)
+    leaves = testTrees(data_trees_test(n,:), trees);
+    p_rf = trees(1).prob(leaves,:);
+    p_rf_sum = sum(p_rf)/length(trees);
+    [~, guess] = max(p_rf_sum);
+    data_trees_test(n, k+1) = guess;
+end
+
+%% Confusion matrix. 
+[indices, class_actual, class_guesses, percentage] = results(data_trees_test(:, k+1), data_trees_train(:, k+1), 'Title', 'filename');
